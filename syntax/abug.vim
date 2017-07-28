@@ -80,6 +80,8 @@ hi def link bugreportNumber      Number
 
 hi def link bugFunction	         Function
 
+
+delc BugFoldFunctions
 let b:current_syntax = "abug"
 
 let &cpo = s:cpo_save
