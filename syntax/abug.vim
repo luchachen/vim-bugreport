@@ -15,6 +15,7 @@ com! -nargs=* BugFoldFunctions <args> fold
 " Functions: {{{1
 if !exists("g:is_posix")
  syn keyword bugFunctionKey function	skipwhite skipnl nextgroup=bugFunctionmap
+ syn keyword bugFunctionAMSKey function	 skipwhite skipnl nextgroup=bugFunctionAMSOne
 endif
 
 "syn cluster bugFunctionList	contains=@
@@ -55,6 +56,36 @@ BugFoldFunctions syn region bugFunctionmap
                        \ contains=bugFunctionKey,@bugFunctionList contained skipwhite skipnl
                        \ nextgroup=NONE
 
+
+"========================================================                                                                                  
+"== Android Framework Services
+"========================================================
+BugFoldFunctions syn region bugFunctionAFS
+                       \ matchgroup=bugFunction start="^==\sAndroid Framework Services$"
+                       \ matchgroup=bugFunction  end="^==\s.*\n=\{56}" skipwhite skipnl 
+                       \ contains=bugFunctionAFSAMS,bugFunctionAFSTwo,bugFunctionAFSOne nextgroup=bugFunction*
+
+BugFoldFunctions syn region bugFunctionAFSOne
+                       \ matchgroup=bugFunction start="^DUMP OF SERVICE\s\z(.*\):"
+                       \ matchgroup=bugFunction  end="^DUMP OF SERVICE"me=s-1 skipwhite skipnl
+                       \ matchgroup=bugFunction  end=+^-\{6}\s.*s was the duration of 'DUMPSYS'+me=s-1 skipwhite skipnl
+                       \ contains=NONE nextgroup=NONE contained
+
+BugFoldFunctions syn region bugFunctionAFSTwo
+                       \ matchgroup=bugFunction start="^Currently running services:"
+                       \ matchgroup=bugFunction  end="^-\{79}$" skipwhite skipnl
+                       \ contains=NONE nextgroup=NONE contained
+
+BugFoldFunctions syn region bugFunctionAFSAMS
+                       \ matchgroup=bugFunction start="^DUMP OF SERVICE activity:"
+                       \ matchgroup=bugFunction  end="^DUMP OF SERVICE"me=s-1 skipwhite skipnl
+                       \ contains=bugFunctionAMSOne nextgroup=NONE contained
+
+BugFoldFunctions syn region bugFunctionAMSOne
+                       \ matchgroup=bugFunction start="^ACTIVITY MANAGER\s"
+                       \ matchgroup=bugFunction  end="^-\{79}$"
+                       \ end="^-\{9} .*s was the duration of dumpsys activity"me=s-1  skipwhite skipnl
+                       \ contains=bugFunctionAMSKey nextgroup=NONE contained
 
 " Sync at the beginning of class, function, or method definition.
 "syn sync match bugSync grouphere NONE "^-\{6}\s.*\s-\{6}"
