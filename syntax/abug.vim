@@ -10,12 +10,17 @@ endif
 let s:cpo_save = &cpo
 set cpo&vim
 
+"syn sync minlines=5
+
 com! -nargs=* BugFoldFunctions <args> fold
 
 " Functions: {{{1
 if !exists("g:is_posix")
- syn keyword bugFunctionKey function	skipwhite skipnl nextgroup=bugFunctionmap
- syn keyword bugFunctionAMSKey function	 skipwhite skipnl nextgroup=bugFunctionAMSOne
+ syn keyword bugFunctionKey function	skipwhite skipnl nextgroup=bugFunctionmap contained
+ syn keyword bugMEMINFOPIDKey  function	skipwhite skipnl nextgroup=bugMEMINFOPID contained
+ syn keyword bugTotalPSSbyOOMOneKey function	skipwhite skipnl
+             \ nextgroup=bugTotalPSSbyOOMOne contained
+ syn keyword bugFunctionAMSKey function	 skipwhite skipnl nextgroup=bugFunctionAMSOne contained
 endif
 
 "syn cluster bugFunctionList	contains=@
@@ -37,6 +42,42 @@ BugFoldFunctions syn region bugFunctionProcessTimes
                        \ matchgroup=bugFunction end="\(^-\{6}\s\([-A-Z46v_&]\+\s\)\+\((.*)\)\=\s-\{6}$\)"me=s-1 skipwhite skipnl 
                        \ nextgroup=bugFunction*
 
+"------ DUMPSYS MEMINFO (dumpsys -t 30 meminfo -a) ------
+"not end was the duration
+BugFoldFunctions syn region bugFunctionMEMINFO
+                       \ matchgroup=bugFunction start="^-\{6}\sDUMPSYS MEMINFO (dumpsys -t 30 meminfo -a)\s-\{6}"
+                       \ matchgroup=bugFunction keepend end=+\(-\{6}\s.*s was the duration of\s'DUMPSYS MEMINFO'\s-\{6}$\)+ skipwhite skipnl 
+                       \ contains=bugMEMINFOPID,bugTotalPSSbyOne,bugTotalPSSbyOOM,bugTotalPSSbyOOMOne
+                       \ nextgroup=bugFunction*
+
+BugFoldFunctions syn region bugMEMINFOPID
+                       \ matchgroup=bugFunction start="^\*\*\sMEMINFO in pid \d\+ \[.*\]\s\*\*"
+                       \ matchgroup=bugFunction end="^\*\*\sMEMINFO in pid \d\+ \[.*\]\s\*\*"me=s-1
+                       \ end='^Total PSS by process:'me=s-1
+                       \ contains=bugMEMINFOPIDKey contained skipwhite skipnl
+                       \ nextgroup=bugTotalPSSbyOne
+
+
+BugFoldFunctions syn region bugTotalPSSbyOne
+                       \ matchgroup=bugFunction start="^Total PSS by .*:$"
+                       \ matchgroup=bugFunction end=+\(^$\)+
+                       \ contains=NONE contained skipwhite skipnl
+                       \ nextgroup=bugTotalPSSbyOne,bugTotalPSSbyOOM
+
+BugFoldFunctions syn region bugTotalPSSbyOOM
+                       \ matchgroup=bugFunction start="^Total PSS by OOM adjustment:$"
+                       \ matchgroup=bugFunction end=+\(^$\)+
+                       \ contains=bugTotalPSSbyOOMOne contained skipwhite skipnl
+                       \ nextgroup=NONE
+
+BugFoldFunctions syn region bugTotalPSSbyOOMOne
+                       \ matchgroup=bugFunction start="^\([0-9, ]\{11}K:\s[A-Z].*\)"
+                       \ matchgroup=bugFunction  end="^\([0-9, ]\{11}K:\s[A-Z].*\)"me=s-1
+                       \ end="^$"me=s-1
+                       \ contains=bugTotalPSSbyOOMOneKey contained skipwhite skipnl
+                       \ nextgroup=bugTotalPSSbyOOMOne
+
+
 "------ KERNEL LOG (dmesg) ------
 BugFoldFunctions syn region bugFunctionKernelLog
                        \ matchgroup=bugFunction start="^-\{6}\s\z(KERNEL LOG (dmesg)\)\s-\{6}" 
@@ -48,7 +89,8 @@ BugFoldFunctions syn region bugFunctionKernelLog
 BugFoldFunctions syn region bugFunctionsmaps   
                        \ matchgroup=bugFunction start="^-\{6}\sSMAPS OF ALL PROCESSES\s-\{6}" 
                        \ matchgroup=bugFunction  end="^$" skipwhite skipnl 
-                       \ contains=bugFunctionmap nextgroup=bugFunction*
+                       \ contains=bugFunctionmap
+                       \ nextgroup=bugFunction*
 
 BugFoldFunctions syn region bugFunctionmap   
                        \ matchgroup=bugFunction start="^-\{6}\s\z(SHOW MAP \([0-9]\+\)\s(.*)\)\s(.*)\s-\{6}"
@@ -63,7 +105,8 @@ BugFoldFunctions syn region bugFunctionmap
 BugFoldFunctions syn region bugFunctionAFS
                        \ matchgroup=bugFunction start="^==\sAndroid Framework Services$"
                        \ matchgroup=bugFunction  end="^==\s.*\n=\{56}" skipwhite skipnl 
-                       \ contains=bugFunctionAFSAMS,bugFunctionAFSTwo,bugFunctionAFSOne nextgroup=bugFunction*
+                       \ contains=bugFunctionAFSAMS,bugFunctionAFSTwo,bugFunctionAFSOne
+                       \ nextgroup=bugFunction*
 
 BugFoldFunctions syn region bugFunctionAFSOne
                        \ matchgroup=bugFunction start="^DUMP OF SERVICE\s\z(.*\):"
@@ -107,7 +150,7 @@ hi def link bugreportURL         Underlined
 hi def link bugreportText        Normal
 hi def link bugreportNumber      Number
 
-hi def link bugFunction	         Function
+hi def link bugFunction	         ErrorMsg
 
 
 delc BugFoldFunctions
