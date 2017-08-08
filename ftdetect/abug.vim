@@ -3,6 +3,7 @@ fun! s:DetectLogcat()
 	if getline(2) =~# '== dumpstate:'
 		set filetype=abug
         set fdm=syntax
+        set foldopen-=search
 	endif
 endfun
 
