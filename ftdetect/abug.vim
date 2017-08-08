@@ -4,6 +4,7 @@ fun! s:DetectLogcat()
 		set filetype=abug
         set fdm=syntax
         set foldopen-=search
+        set nomodifiable
 	endif
 endfun
 
